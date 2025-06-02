@@ -25,15 +25,18 @@ Using this data in the second part of this script, several directional and spaci
     ![Medium_norms](https://github.com/user-attachments/assets/014d2910-d9b4-4822-8c28-252be6dfa36e)
     ![Long_norms](https://github.com/user-attachments/assets/c874d3af-db88-4215-ad29-cd0e077be60c)
     
-  - Averaged X and Y drift values from all cells based on frame (used to determine coefficient of drift correction) 
+  - Averaged X and Y drift values from all cells based on frame (used to determine coefficient of drift correction)
+    
     ![X&Y_Drift](https://github.com/user-attachments/assets/8d626168-b48c-408f-96d2-7452a7df4f43)
     
   - Calcualtion of Mean Squared Displacement(MSD) of all detected particles both before, and after subtraction of the drift coefficient from each cells. Plotted as MSD vs. Time
+    
     ![MSD](https://github.com/user-attachments/assets/f8e8898d-d98f-4171-ae1d-27b0a8800cc7)
     
-  - Using Linear regression to determine the slope and intercept of the initially linear region of the MSD vs. Time plot. This linear region is where the cells motion is assumed to be equatable to Brownian motion. As a result of this assumption of Brownain motion, the diffusion coeffient can be determined using the equation ![MSD equation](https://github.com/user-attachments/assets/f7b0fe9c-6167-4cad-b9e6-4a726d7238be)
+  - Using Linear regression to determine the slope and intercept of the initially linear region of the MSD vs. Time plot. This linear region is where the cells motion is assumed to be equatable to Brownian motion. As a result of this assumption of Brownain motion, the diffusion coeffient can be determined using the equation
+     ![MSD equation](https://github.com/user-attachments/assets/f7b0fe9c-6167-4cad-b9e6-4a726d7238be)
 
-  ![image](https://github.com/user-attachments/assets/ebe93599-f9dd-453f-845a-5f14b469a847)
+     ![image](https://github.com/user-attachments/assets/ebe93599-f9dd-453f-845a-5f14b469a847)
 
 
 
