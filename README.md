@@ -20,6 +20,7 @@ Using this data in the second part of this script, several directional and spaci
     ![Trajectory_displacement_maps](https://github.com/user-attachments/assets/66570264-3f8b-44a3-b373-544c95df9c53)
     
   - Mapping normalized displacements into polar coordinates/angles and divides cells into groups based off percent displacement relative to the maximum normalized vector(Short:0.33-0, Medium:0.66-0.34, Long:0.67-1). Afterwhich, the left vs. right cell displacements are counted and displayed. The purpose of this analysis is to see if there is a noticable deviation in cell directionaility based off of the cell total displacement
+    
     ![Short_norms](https://github.com/user-attachments/assets/71596dc7-c418-4f1e-821e-01eb7492876b)
     ![Medium_norms](https://github.com/user-attachments/assets/014d2910-d9b4-4822-8c28-252be6dfa36e)
     ![Long_norms](https://github.com/user-attachments/assets/c874d3af-db88-4215-ad29-cd0e077be60c)
@@ -32,7 +33,8 @@ Using this data in the second part of this script, several directional and spaci
     
   - Using Linear regression to determine the slope and intercept of the initially linear region of the MSD vs. Time plot. This linear region is where the cells motion is assumed to be equatable to Brownian motion. As a result of this assumption of Brownain motion, the diffusion coeffient can be determined using the equation ![MSD equation](https://github.com/user-attachments/assets/f7b0fe9c-6167-4cad-b9e6-4a726d7238be)
 
-    ![MSD Linear fit](https://github.com/user-attachments/assets/54a36972-ff3a-4c4b-90e8-b819a7ec9a68)
+  ![image](https://github.com/user-attachments/assets/ebe93599-f9dd-453f-845a-5f14b469a847)
+
 
 
 NOTES: 
