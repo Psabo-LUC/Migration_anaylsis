@@ -11,12 +11,15 @@ Currently, this script is divided into two parts (that may get partitioned in la
 
 Using this data in the second part of this script, several directional and spacial analysis are done on each particle to determine and generate the following:
   - Particles frame count:
+    
     ![Particle frame duration](https://github.com/user-attachments/assets/ab6fcbd4-7bdf-4b58-97df-2bc6d5569885)
     
   - Histograms displaying frequancy of the average velocity:
+    
     ![Velocity Histogram](https://github.com/user-attachments/assets/e250fbeb-a8e1-4fdb-a5b9-6e121cf1c3e5)
     
   - Individual cell trajectory maps labeled with the particle_ID, displacement (between the initial and final frames of detection), and velocity
+    
     ![Trajectory_displacement_maps](https://github.com/user-attachments/assets/66570264-3f8b-44a3-b373-544c95df9c53)
     
   - Mapping normalized displacements into polar coordinates/angles and divides cells into groups based off percent displacement relative to the maximum normalized vector(Short:0.33-0, Medium:0.66-0.34, Long:0.67-1). Afterwhich, the left vs. right cell displacements are counted and displayed. The purpose of this analysis is to see if there is a noticable deviation in cell directionaility based off of the cell total displacement
