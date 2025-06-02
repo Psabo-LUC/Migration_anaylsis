@@ -36,7 +36,7 @@ Using this data in the second part of this script, several directional and spaci
     
     ![MSD](https://github.com/user-attachments/assets/f8e8898d-d98f-4171-ae1d-27b0a8800cc7)
     
-  - Using Linear regression to determine the slope and intercept of the initially linear region of the MSD vs. Time plot. This linear region is where the cells motion is assumed to be equatable to Brownian motion. As a result of this assumption of Brownian motion, the diffusion coefficient can be determined using the equation.
+  - Using Linear regression to determine the slope and intercept of the initially linear region of the MSD vs. Time plot. This linear region is where the cells motion is assumed to be equatable to Brownian motion. As a result of this assumption of Brownian motion, the diffusion coefficient can be determined using the equation. Where, n = (2*pi)
   ![MSD equation](https://github.com/user-attachments/assets/f7b0fe9c-6167-4cad-b9e6-4a726d7238be)
 
   - Additionally, a histogram of displacements is dispalyed to assist in evaluate the degree of the displacements normal distribution 
