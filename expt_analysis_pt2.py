@@ -14,14 +14,17 @@ import cellmigration.expt_analysis.trackcells as tc
 from config import config
 
 directory_name = "expt_analysis_pt1_dump_site"
-dump_site = "/home/billb/Python Playground/"
+dump_site = f"{os.path.dirname(os.path.abspath(__file__))}/"
 tif_file = "Position_1_background_editted"
 fileName = f"{os.path.dirname(os.path.abspath(__file__))}/{tif_file}.tif"
 
 Tracking_output = pd.read_csv(f"{os.path.dirname(os.path.abspath(__file__))}/expt_analysis_pt1_dump_site/Tracking_Output_{tif_file}.csv")
 
+#print(f"{os.path.dirname(os.path.abspath(__file__))}/expt_analysis_pt1_dump_site/Testing.csv")
+
 while os.path.exists(f"{os.path.dirname(os.path.abspath(__file__))}/expt_analysis_pt1_dump_site/Testing.csv") == True:
     Tracking_output = pd.read_csv(f"{os.path.dirname(os.path.abspath(__file__))}/expt_analysis_pt1_dump_site/Testing.csv")
+    print("Using testing csv")
     break
 
     
@@ -116,7 +119,7 @@ def track_manipulation(trajectories, leading_particle, end_particle, operation, 
                 y1 = ending_traj['y']
                 plt.plot(x0, y0, lw = 0.6, c = 'red')
                 plt.plot(x1, y1, lw = 0.6, c = 'blue')
-                plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Before.png")
+                plt.savefig(os.path.join(dump_site, directory_name) + "/Track_manipulation_Map_Before.png")
 
                 plt.figure(figsize=(20,20))
                 fig=plt.figure(figsize=(20,20))
@@ -125,14 +128,32 @@ def track_manipulation(trajectories, leading_particle, end_particle, operation, 
                 x = testing_trajectories['x']
                 y = testing_trajectories['y']
                 plt.plot(x, y, lw = 0.6)
-                plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_After.png")
+                plt.savefig(os.path.join(dump_site, directory_name) + "/Track_manipulation_Map_After.png")
                 print("Set 'state' function variable to 'active' for the operation to be applied to the leading particle. This is a safety feature, 'state' should be set to 'testing' unless the user is completely confident in the operations outcome")
 
 
 
+        elif operation == "delete_particle":
+            if state == "active":
+                del trajectories[leading_particle]
+                print(f"Particle:{leading_particle} has been deleted from trajectory list")
+                
+            elif state == "testing":
+                plt.figure(figsize=(20,20))
+                fig=plt.figure(figsize=(20,20))
+                plt.imshow(frames[ref_frame,:,:],cmap='Greys')
+                xs0 = trajectories[leading_particle]['x']
+                ys0 = trajectories[leading_particle]['y']
+                plt.plot(xs0, ys0, lw = 0.6)
+                plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Before.png")
 
-        elif operation == "delete_particle":   
-            print("'delete_particle' not yet added")
+                plt.figure(figsize=(20,20))
+                fig=plt.figure(figsize=(20,20))
+                plt.imshow(frames[ref_frame,:,:],cmap='Greys')
+                trajectories_del = trajectories.copy()
+                del trajectories_del[leading_particle]
+                plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_After.png")
+                print("Set 'state' function variable to 'active' for the operation to be applied to the leading particle. This is a safety feature, 'state' should be set to 'testing' unless the user is completely confident in the operations outcome")
         elif operation == "add_point":
             cords = {'x':[point_cords[1]], 'y':[point_cords[2]]}
             cords_df = pd.DataFrame(data = cords)
@@ -195,7 +216,8 @@ def data_unpacking(trajectories):
     for particle in list(trajectories.keys()):
         sub_df = pd.DataFrame(trajectories[particle])
         sub_df.insert(2, 'particle', particle)
-        reindex_sub_df = sub_df.reset_index(names='frame')
+        reindex_sub_df = sub_df.reset_index()
+        reindex_sub_df = reindex_sub_df.rename(columns = {"index":"frame"})
         unpacked_traj =pd.concat([unpacked_traj,reindex_sub_df])
     unpacked_traj = unpacked_traj.sort_values(by =['frame','particle'])
     unpacked_traj = unpacked_traj.reset_index(drop = True)
@@ -209,9 +231,9 @@ def data_unpacking(trajectories):
 trajectory_sorted = split_by_particle_sorted(t_reindexed)
 
 
-track_checking(trajectories = trajectory_sorted, leading_particle =8, end_particle = 141,  ref_frame =14)
+track_checking(trajectories = trajectory_sorted, leading_particle =7, end_particle = 139,  ref_frame =14)
 
-trajectories = track_manipulation(trajectories = trajectory_sorted, leading_particle = 8, end_particle = 141, ref_frame = 14, operation = "merge", state = "testing", point_cords = (14, 673, 1445))
+trajectories = track_manipulation(trajectories = trajectory_sorted, leading_particle = 63, end_particle = 140, ref_frame = 14, operation = "delete_particle", state = "testing", point_cords = (14, 677, 1448))
 
 
 #track_checking(trajectories, leading_particle =8, end_particle = 141)
@@ -219,6 +241,4 @@ trajectories = track_manipulation(trajectories = trajectory_sorted, leading_part
 
 
 editted_trajs = data_unpacking(trajectories)
-
-
-editted_trajs.to_csv(os.path.join(dump_site, directory_name) + f"/Testing.csv")
+editted_trajs.to_csv(os.path.join(dump_site, directory_name) + "/Testing.csv")
