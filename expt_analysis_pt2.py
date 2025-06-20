@@ -18,6 +18,8 @@ dump_site = f"{os.path.dirname(os.path.abspath(__file__))}/"
 tif_file = "Position_1_background_editted"
 fileName = f"{os.path.dirname(os.path.abspath(__file__))}/{tif_file}.tif"
 
+PARTICLE_LOADING = pd.read_csv(f"{os.path.dirname(os.path.abspath(__file__))}/expt_analysis_pt1_dump_site/Tracking_Output_{tif_file}.csv")
+
 Tracking_output = pd.read_csv(f"{os.path.dirname(os.path.abspath(__file__))}/expt_analysis_pt1_dump_site/Tracking_Output_{tif_file}.csv")
 
 #print(f"{os.path.dirname(os.path.abspath(__file__))}/expt_analysis_pt1_dump_site/Testing.csv")
@@ -95,18 +97,16 @@ def track_checking(trajectories, leading_particle, end_particle, ref_frame = 0, 
         print("Neither Particle exists")
     return 
 
-
-    #point_cords = (frame, x, y) of point to add
-    #state = active or testing
 def track_manipulation(trajectories, leading_particle, end_particle, operation, state, point_cords, ref_frame):
     if (leading_particle in trajectories) and (end_particle in trajectories):
         if operation == "merge":
             if state == "active":
                 leading_traj = trajectories[leading_particle]
                 ending_traj = trajectories[end_particle]
-                trajectories[leading_particle] = pd.concat([leading_traj,ending_traj], ignore_index=True)
+                trajectories[leading_particle] = pd.concat([leading_traj,ending_traj], ignore_index=False)
                 del trajectories[end_particle]
                 print(f"Particle:{leading_particle} has been merged with Particle:{end_particle}. Particle:{end_particle} has been deleted from trajectory list")
+
             elif state == "testing":
                 plt.figure(figsize=(20,20))
                 fig=plt.figure(figsize=(20,20))
@@ -124,36 +124,65 @@ def track_manipulation(trajectories, leading_particle, end_particle, operation, 
                 plt.figure(figsize=(20,20))
                 fig=plt.figure(figsize=(20,20))
                 plt.imshow(frames[ref_frame,:,:],cmap='Greys')
-                testing_trajectories = pd.concat([leading_traj,ending_traj], ignore_index=True)
+                testing_trajectories = pd.concat([leading_traj,ending_traj], ignore_index=False)
                 x = testing_trajectories['x']
                 y = testing_trajectories['y']
                 plt.plot(x, y, lw = 0.6)
                 plt.savefig(os.path.join(dump_site, directory_name) + "/Track_manipulation_Map_After.png")
                 print("Set 'state' function variable to 'active' for the operation to be applied to the leading particle. This is a safety feature, 'state' should be set to 'testing' unless the user is completely confident in the operations outcome")
+        else: print("Function could not understand operation input") 
+    elif (leading_particle in trajectories) == False:
+        if operation == "load_particle":
+            print("Leading particle does not exist")
+            if leading_particle in trajectories:
+                print(f"Particle:{point_cords[0]} already exists in this trajectory map. Particle must first be deleted before attempting to load from memory")
+            elif leading_particle not in trajectories:
+                if state == "active":
+                    particle_loading = pd.read_csv(f"{os.path.dirname(os.path.abspath(__file__))}/expt_analysis_pt1_dump_site/Testing_checkpoint.csv")
+                    reindex_particle_loading = particle_loading.set_index('frame')
+                    Loaded_trajs = split_by_particle_sorted(reindex_particle_loading)
+                    trajectories[leading_particle] = Loaded_trajs[leading_particle]
+                    print(f"Particle:{leading_particle} has been loaded from memory and added to trajectory map")
 
+                elif state == "testing":
+                    fig=plt.figure(figsize=(20,20))
+                    plt.imshow(frames[ref_frame,:,:],cmap='Greys')
+                    plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Before.png")
 
+                    particle_loading = pd.read_csv(f"{os.path.dirname(os.path.abspath(__file__))}/expt_analysis_pt1_dump_site/Testing_checkpoint.csv")
+                    reindex_particle_loading = particle_loading.set_index('frame')
+                    Loaded_trajs = split_by_particle_sorted(reindex_particle_loading)
+                    xs0 = Loaded_trajs[leading_particle]['x']
+                    ys0 = Loaded_trajs[leading_particle]['y']
 
-        elif operation == "delete_particle":
+                    fig=plt.figure(figsize=(20,20))
+                    plt.imshow(frames[ref_frame,:,:],cmap='Greys')
+                    plt.plot(xs0, ys0, lw = 0.6)
+                    plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_After.png")
+                    print("Set 'state' function variable to 'active' for the operation to be applied to the leading particle. This is a safety feature, 'state' should be set to 'testing' unless the user is completely confident in the operations outcome")
+        else: print("Leading particle does not exist and no approprate operation is selected")
+    elif (leading_particle in trajectories) == True:
+        if operation == "delete_particle":
             if state == "active":
                 del trajectories[leading_particle]
                 print(f"Particle:{leading_particle} has been deleted from trajectory list")
-                
+    
             elif state == "testing":
                 plt.figure(figsize=(20,20))
                 fig=plt.figure(figsize=(20,20))
                 plt.imshow(frames[ref_frame,:,:],cmap='Greys')
-                xs0 = trajectories[leading_particle]['x']
-                ys0 = trajectories[leading_particle]['y']
+                traj_testing =trajectories[leading_particle].copy()
+                xs0 = traj_testing['x']
+                ys0 = traj_testing['y']
                 plt.plot(xs0, ys0, lw = 0.6)
                 plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Before.png")
 
                 plt.figure(figsize=(20,20))
                 fig=plt.figure(figsize=(20,20))
                 plt.imshow(frames[ref_frame,:,:],cmap='Greys')
-                trajectories_del = trajectories.copy()
-                del trajectories_del[leading_particle]
                 plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_After.png")
                 print("Set 'state' function variable to 'active' for the operation to be applied to the leading particle. This is a safety feature, 'state' should be set to 'testing' unless the user is completely confident in the operations outcome")
+
         elif operation == "add_point":
             cords = {'x':[point_cords[1]], 'y':[point_cords[2]]}
             cords_df = pd.DataFrame(data = cords).set_index([[point_cords[0]]])
@@ -175,50 +204,7 @@ def track_manipulation(trajectories, leading_particle, end_particle, operation, 
                 elif ((point_cords[0]-1) in trajectories[leading_particle].index):
                     print("Coordinates for this frame do not exist but a preceeding point exists")
                     if state == "active":
-                        plt.figure(figsize=(20,20))
-                        fig=plt.figure(figsize=(20,20))
-                        plt.imshow(frames[ref_frame,:,:],cmap='Greys')
-                        xs0 = trajectories[leading_particle]['x'].copy()
-                        ys0 = trajectories[leading_particle]['y'].copy()
-                        plt.plot(xs0, ys0, lw = 0.6)
-                        plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Before.png")
-
                         trajectories[leading_particle] = pd.concat([trajectories[leading_particle],cords_df], ignore_index=False)
-
-                        xs1 = trajectories[leading_particle]['x']
-                        ys1 = trajectories[leading_particle]['y']
-                        plt.plot(xs1, ys1, lw = 0.6)
-                        plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_After.png")
-                        print(f"Particle:{leading_particle} has been updated")
-
-                    elif state == "testing":
-                        plt.figure(figsize=(20,20))
-                        fig=plt.figure(figsize=(20,20))
-                        plt.imshow(frames[ref_frame,:,:],cmap='Greys')
-                        xs0 = trajectories[leading_particle]['x']
-                        ys0 = trajectories[leading_particle]['y']
-                        plt.plot(xs0, ys0, lw = 0.6)
-                        plt.plot(x, y, 'o')
-                        plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Test.png")
-                        print("Set 'state' function variable to 'active' for the operation to be applied to the leading particle. This is a safety feature, 'state' should be set to 'testing' unless the user is completely confident in the operations outcome")
-                     #print("'add_point' not yet added")
-                elif ((point_cords[0]+1) in trajectories[leading_particle].index):
-                    print("Coordinates for this frame do not exist but a proceeding point exists")
-                    if state == "active":
-                        plt.figure(figsize=(20,20))
-                        fig=plt.figure(figsize=(20,20))
-                        plt.imshow(frames[ref_frame,:,:],cmap='Greys')
-                        xs0 = trajectories[leading_particle]['x'].copy()
-                        ys0 = trajectories[leading_particle]['y'].copy()
-                        plt.plot(xs0, ys0, lw = 0.6)
-                        plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Before.png")
-
-                        trajectories[leading_particle] = pd.concat([cords_df,trajectories[leading_particle]], ignore_index=False)
-
-                        xs1 = trajectories[leading_particle]['x']
-                        ys1 = trajectories[leading_particle]['y']
-                        plt.plot(xs1, ys1, lw = 0.6)
-                        plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_After.png")
                         print(f"Particle:{leading_particle} has been updated")
 
                     elif state == "testing":
@@ -229,7 +215,38 @@ def track_manipulation(trajectories, leading_particle, end_particle, operation, 
                         ys0 = trajectories[leading_particle]['y']
                         plt.plot(xs0, ys0, lw = 0.6)
                         plt.plot(x, y, 'x')
-                        plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Test.png")
+                        plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Before.png")
+
+                        traj_testing = pd.concat([trajectories[leading_particle],cords_df], ignore_index=False)
+
+                        xs1 = traj_testing['x']
+                        ys1 = traj_testing['y']
+                        plt.plot(xs1, ys1, lw = 0.6)
+                        plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_After.png")
+                        print("Set 'state' function variable to 'active' for the operation to be applied to the leading particle. This is a safety feature, 'state' should be set to 'testing' unless the user is completely confident in the operations outcome")
+                        
+                elif ((point_cords[0]+1) in trajectories[leading_particle].index):
+                    print("Coordinates for this frame do not exist but a proceeding point exists")
+                    if state == "active":
+                        trajectories[leading_particle] = pd.concat([cords_df,trajectories[leading_particle]], ignore_index=False)
+                        print(f"Particle:{leading_particle} has been updated")
+
+                    elif state == "testing":
+                        plt.figure(figsize=(20,20))
+                        fig=plt.figure(figsize=(20,20))
+                        plt.imshow(frames[ref_frame,:,:],cmap='Greys')
+                        xs0 = trajectories[leading_particle]['x']
+                        ys0 = trajectories[leading_particle]['y']
+                        plt.plot(xs0, ys0, lw = 0.6)
+                        plt.plot(x, y, 'x')
+                        plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Before.png")
+                        
+                        traj_testing = pd.concat([cords_df,trajectories[leading_particle]], ignore_index=False)
+
+                        xs1 = traj_testing['x']
+                        ys1 = traj_testing['y']
+                        plt.plot(xs1, ys1, lw = 0.6)
+                        plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_After.png")
                         print("Set 'state' function variable to 'active' for the operation to be applied to the leading particle. This is a safety feature, 'state' should be set to 'testing' unless the user is completely confident in the operations outcome")
 
         elif operation == "delete_point":
@@ -238,36 +255,56 @@ def track_manipulation(trajectories, leading_particle, end_particle, operation, 
                 print(f"Frame:{point_cords[0]} of Particle:{leading_particle} has been deleted")
 
             elif state == "testing":
+                if point_cords[0] in trajectories[leading_particle].index:
+                    plt.figure(figsize=(20,20))
+                    fig=plt.figure(figsize=(20,20))
+                    plt.imshow(frames[ref_frame,:,:],cmap='Greys')
+                    xs0 = trajectories[leading_particle]['x']
+                    ys0 = trajectories[leading_particle]['y']
+                    plt.plot(xs0, ys0, lw = 0.6)
+                    plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Before.png")
+
+                    plt.figure(figsize=(20,20))
+                    fig=plt.figure(figsize=(20,20))
+                    plt.imshow(frames[ref_frame,:,:],cmap='Greys')
+                    traj_test = trajectories[leading_particle].copy()
+                    traj_test = traj_test.drop(labels = point_cords[0], axis = 0)
+                    xs0 = traj_test['x']
+                    ys0 = traj_test['y']
+                    plt.plot(xs0, ys0, lw = 0.6)
+                    plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_After.png")
+                    print("Set 'state' function variable to 'active' for the operation to be applied to the leading particle. This is a safety feature, 'state' should be set to 'testing' unless the user is completely confident in the operations outcome")
+                elif point_cords[0] not in trajectories[leading_particle].index:
+                    print(f"Frame:{point_cords[0]} does note exist within particle:{leading_particle}'s trajectory map")
+        elif operation == "add_particle":
+            if state == "active":
+                cords = {'x':[point_cords[1]], 'y':[point_cords[2]]}
+                cords_df = pd.DataFrame(data = cords).set_index([[point_cords[0]]])
+                particle_list = list(trajectories.keys())
+                new_particle_id = (particle_list[-1]+1)
+                trajectories[new_particle_id] = cords_df
+            elif state == "testing":
+                cords = {'x':[point_cords[1]], 'y':[point_cords[2]]}
+                cords_df = pd.DataFrame(data = cords).set_index([[point_cords[0]]])
                 plt.figure(figsize=(20,20))
                 fig=plt.figure(figsize=(20,20))
-                plt.imshow(frames[ref_frame,:,:],cmap='Greys')
-                xs0 = trajectories[leading_particle]['x']
-                ys0 = trajectories[leading_particle]['y']
-                plt.plot(xs0, ys0, lw = 0.6)
+                plt.imshow(frames[[point_cords[0]],:,:],cmap='Greys')
                 plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_Before.png")
 
                 plt.figure(figsize=(20,20))
                 fig=plt.figure(figsize=(20,20))
-                plt.imshow(frames[ref_frame,:,:],cmap='Greys')
-                traj_test = trajectories[leading_particle].copy()
-                traj_test = traj_test.drop(labels = point_cords[0], axis = 0)
+                plt.imshow(frames[[point_cords[0]],:,:],cmap='Greys')
+                traj_tests = trajectories[leading_particle].copy()
+                traj_tests[new_particle_id] = cords_df
                 xs0 = traj_test['x']
                 ys0 = traj_test['y']
-                plt.plot(xs0, ys0, lw = 0.6)
+                plt.plot(xs0, ys0, 'x')
                 plt.savefig(os.path.join(dump_site, directory_name) + f"/Track_manipulation_Map_After.png")
-
-
-
-
-
-
                 print("Set 'state' function variable to 'active' for the operation to be applied to the leading particle. This is a safety feature, 'state' should be set to 'testing' unless the user is completely confident in the operations outcome")
 
-                
-            print("'delete_point' not yet added")
-        else: print("Function could not understand operation input") 
-    elif leading_particle in trajectories == False:
-        print("Leading particle does not exist")
+
+
+        else: print("Function could not understand operation input")  
     elif end_particle in trajectories == False:
         print("Ending particle does not exist")
     elif (leading_particle in trajectories == False) and (end_particle in trajectories == False):
@@ -304,9 +341,9 @@ def traj_map(trajectory, ref_frame = 0):
 trajectory_sorted = split_by_particle_sorted(t_reindexed)
 
 
-track_checking(trajectories = trajectory_sorted, leading_particle =103, end_particle = 138,  ref_frame =9)
+track_checking(trajectories = trajectory_sorted, leading_particle =78, end_particle = 65,  ref_frame =0)
 
-trajectories = track_manipulation(trajectories = trajectory_sorted, leading_particle = 103, end_particle = 138, ref_frame = 0, operation = "add_point", state = "testing", point_cords = (0, 2028, 546))
+trajectories = track_manipulation(trajectories = trajectory_sorted, leading_particle = 32, end_particle = 999, ref_frame =0, operation = "delete_particle", state = "active", point_cords = (0, 1765, 610))
 
 
 #track_checking(trajectories, leading_particle =8, end_particle = 141)
